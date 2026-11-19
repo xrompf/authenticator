@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Authenticator</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f4f6f8;
+      --text: #1e293b;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --danger: #dc2626;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+
+    body {
+      width: 340px;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* Top Toolbar */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--primary);
+      color: #fff;
+    }
+
+    header h1 { font-size: 15px; margin: 0; font-weight: 600; }
+
+    .toolbar-btns { display: flex; gap: 6px; }
+
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.18);
+      border: none;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .icon-btn:hover { background: rgba(255, 255, 255, 0.3); }
+
+    /* Search Bar */
+    .search-bar {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    /* Drawer Panels (Add / Backup) */
+    .drawer {
+      display: none;
+      padding: 12px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-direction: column;
+      gap: 8px;
+    }
+    .drawer.open { display: flex; }
+    .drawer input {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 7px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .row { display: flex; gap: 6px; }
+    .row > * { flex: 1; }
+
+    /* Account List */
+    .account-list {
+      max-height: 360px;
+      overflow-y: auto;
+    }
+
+    .account-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .account-item:hover { background: var(--surface); }
+
+    .issuer { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .account-name { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+    .otp-code {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--primary);
+      font-variant-numeric: tabular-nums;
+    }
+    .otp-code.copied { color: #16a34a; font-size: 16px; letter-spacing: 0; }
+
+    /* Circular SVG Countdown */
+    .ring-wrap { display: flex; align-items: center; gap: 8px; }
+    svg.countdown { transform: rotate(-90deg); width: 24px; height: 24px; }
+    circle { fill: none; stroke-width: 3; }
+    .ring-bg { stroke: var(--border); }
+    .ring-fg { stroke: var(--primary); transition: stroke-dashoffset 0.3s linear; }
+    .ring-fg.expiring { stroke: var(--danger); }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 2px 4px;
+    }
+    .del-btn:hover { color: var(--danger); }
+
+    .status-msg {
+      font-size: 12px;
+      text-align: center;
+      padding: 6px;
+      color: var(--primary);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Authenticator</h1>
+    <div class="toolbar-btns">
+      <button class="icon-btn" id="scanQrBtn" title="Scan QR Code on Current Tab">Scan QR</button>
+      <button class="icon-btn" id="toggleAddBtn" title="Add Account">+</button>
+      <button class="icon-btn" id="toggleBackupBtn" title="Export / Import">Backup</button>
+    </div>
+  </header>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search accounts (press '/')..." />
+  </div>
+
+  <!-- Manual Add Drawer -->
+  <form class="drawer" id="addDrawer">
+    <input type="text" id="issuerInput" placeholder="Issuer (e.g. GitHub)" required />
+    <input type="text" id="labelInput" placeholder="Account (e.g. user@email.com)" />
+    <input type="text" id="secretInput" placeholder="Base32 Secret Key" required />
+    <button type="submit" class="btn-primary">Save Account</button>
+  </form>
+
+  <!-- Encrypted Export/Import Drawer -->
+  <div class="drawer" id="backupDrawer">
+    <input type="password" id="backupPass" placeholder="Encryption password (optional)" />
+    <div class="row">
+      <button type="button" class="btn-primary" id="exportBtn">Export JSON</button>
+      <button type="button" class="btn-primary" id="importBtn">Import JSON</button>
+    </div>
+    <input type="file" id="importFile" accept=".json" style="display:none" />
+  </div>
+
+  <div class="status-msg" id="statusMsg"></div>
+  <div class="account-list" id="accountList"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
