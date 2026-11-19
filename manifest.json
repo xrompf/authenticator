@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Browser Authenticator",
+  "version": "1.0.0",
+  "description": "In-browser 2FA TOTP authenticator with screen QR scanning and encrypted backups.",
+  "permissions": ["storage", "activeTab"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Authenticator"
+  }
+}
